@@ -1,25 +1,121 @@
-const express = require('express')
+const express = require('express');
+const Joi = require('joi');
+const {
+  listContacts,
+  getContactById,
+  removeContact,
+  addContact,
+  updateContact,
+} = require("../../models/contacts");
 
 const router = express.Router()
 
 router.get('/', async (req, res, next) => {
-  res.json({ message: 'template message' })
-})
+  try {
+    const contacts = await listContacts();
+    res.status(200).json(contacts);
+  } catch (error) {
+    next(error)
+  }
+});
+
+
 
 router.get('/:contactId', async (req, res, next) => {
-  res.json({ message: 'template message' })
-})
+  try {
+    const contactId = req.params.contactId;
+    const contact = await getContactById(contactId);
+    res.status(200).json(contact)
+  } catch (error) {
+    if(error.message === "Contact not found") {
+      res.status(404).json({message: "Not found"})
+    } else {
+      next(error)
+    }
+  }
+});
+
+
 
 router.post('/', async (req, res, next) => {
-  res.json({ message: 'template message' })
-})
+  try{
+    const {name, email, phone} = req.body;
+
+    const schema = Joi.object({
+      name: Joi.string().required(),
+      email: Joi.string().email().required(),
+      phone: Joi.string().required(),
+    });
+
+    const { error } = schema.validate({ name, email, phone });
+
+    if(error){
+      res
+      .status(400)
+      .json({
+        message: `missing required ${error.details[0].context.key} name - field`,
+      });
+      return;
+    }
+
+    const newContact = await addContact(name, email, phone);
+    res.status(201).json(newContact);
+
+  } catch (error) {
+    next(error);
+  }
+});
+
+
 
 router.delete('/:contactId', async (req, res, next) => {
-  res.json({ message: 'template message' })
-})
+  try {
+    const contactId = req.params.contactId;
+    await removeContact(contactId);
+    res.status(200).json({message: "Contact deleted"})
+  } catch (error) {
+    if (error.message === "Contact not found") {
+      res.status(404).json({message: "Not found"})
+    } else {
+      next(error);
+    }
+  }
+});
+
+
+
 
 router.put('/:contactId', async (req, res, next) => {
-  res.json({ message: 'template message' })
-})
+  try {
+     const contactId = req.params.contactId;
+     const { name, email, phone} = req.body;
 
-module.exports = router
+     const schema = Joi.object({
+      name: Joi.string().required(),
+      email: Joi.string().email().required(),
+      phone: Joi.string().required(),
+    });
+
+    const { error } = schema.validate({ name, email, phone });
+
+    if(error) {
+      res.status(400).json({message: "mising fields"});
+      return;
+    }
+
+    const updateContact = await updateContact(contactId, {
+      name,
+      email,
+      phone,
+    });
+      res.status(200).json(updateContact);
+  } catch (error) {
+    if(error.message === "Contact not found"){
+      res.status(404).json({message: "Not found"});
+    } else {
+      next(error);
+    }
+  }
+});
+
+module.exports = router;
