@@ -8,7 +8,7 @@ console.log("here is my language")
 const contactsPath = path.format({ dir: "./models", base: "contacts.json"});
 
 
-const listContacts = async (filePath, arr) => {
+const listContacts = async () => {
   const string = JSON.stringify(arr, null, 2);
   try {
     await fs.writeFile(filePath, string);
