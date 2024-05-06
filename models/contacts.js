@@ -20,7 +20,7 @@ const listContacts = async () => {
 const getContactById = async (contactId) => {
   const contactData = await listContacts();
   const contact = contactData.filter(({ id }) => id === contactId);
-  if (contact.length === 0) {
+  if (contact.length === 0 && contact === 'false') {
     throw new Error("Contact not found");
   }
   return contact;
