@@ -1,97 +1,90 @@
-const fs = require('fs/promises');
-const path = require('path');
-const Joi = require("joi");
-const { v4: uuidv4 } = require("uuid");
-
-console.log("here is my language")
-
-const contactsPath = path.format({ dir: "./models", base: "contacts.json"});
-
+const Contact = require("../models/contactsModel.js");
 
 const listContacts = async () => {
-  const string = JSON.stringify(arr, null, 2);
   try {
-    await fs.readFile(filePath, string);
+    const data = await Contact.find();
+    return data;
   } catch (err) {
-    console.error(err)
+    throw new Error("Error reading contacts data");
   }
 };
 
+
 const getContactById = async (contactId) => {
-  const contactData = await listContacts();
-  const contact = contactData.filter(({ id }) => id === contactId);
-  if (contact.length === 0 && contact === 'false') {
+  const contact = await Contact.findById(contactId)
+  if (!contact) {
     throw new Error("Contact not found");
   }
   return contact;
 };
 
-const removeContact = async (contactId) => {
-  const contactsData = await listContacts();
-  const contactIndex = contactsData.findIndex(
-    (contact) => contact.id === contactId
-  );
 
-  if (contactIndex === -1) {
+const removeContact = async (contactId) => {
+  const contact = await Contact.findByIdAndDelete(contactId);
+  if (!contact) {
     throw new Error("Contact not found");
   }
-
-  contactsData.splice(contactIndex, 1);
-  await saveArrayToFile(contactsPath, contactsData);
+  return contact;
 };
 
 const addContact = async (name, email, phone) => {
-  const contacts = await listContacts();
-
-  const contact = {
-    id: uuidv4(),
-    name,
-    email,
-    phone,
-  };
-
-  const updatedContacts = [...contacts, contact];
-  await saveArrayToFile(contactsPath, updatedContacts);
-
-  return contact;
+  try{
+    const newContact = await Contact.create({
+      name,
+      email,
+      phone,
+      favorite: false,
+    });
+  return newContact;
+} catch (error) {
+    console.error("Error during contact addition:", error);
+    throw error;
+}
 };
-
-
 
 const updateContact = async (contactId, body) => {
   const {name, email, phone} = body;
 
-  const contactsData = await listContacts();
-  const contactIndex = contactsData.findIndex(
-    (contact) => contact.id === contactId
-  );
+  try{
+    const contact = await Contact.findByIdAndUpdate(
+      contactId,
+      {
+        $set: {
+          name,
+          email,
+          phone,
+        },
+      },
+      {new:true}
+    );
 
-  if (contactIndex === -1) {
-    throw new Error("Contact not found");
-  }
-  const schema = Joi.object({
-    name: Joi.string().required(),
-    email: Joi.string().email().required(),
-    phone: Joi.string().required(),
-  });;
-
-
-  const {error} = schema.validate({ name, email, phone });
-
-  if (error) {
-    throw new Error("missing fields");
-  }
-
-  contactsData[contactId] = {
-    ...contactsData[contactIndex],
-    name: name || contactsData[contactIndex].name,
-    email: email || contactsData[contactIndex].email,
-    phone: phone || contactsData[contactIndex].phone,
-  };
-
-  await saveArrayToFile(contactsPath, contactsData);
-  return contactsData[contactIndex];
+if(!contact) {
+  throw new Error("Contact not found")
+};
+  return contact;
+} catch(error){
+  console.error("Error during favorite contact status update:", error);
+  throw error;
 }
+};
+
+
+const updateFavoriteStatus = async (contactId, favorite) => {
+  try {
+    const updateContact = await Contact.findByIdAndUpdate(
+      contactId,
+      { $set: { favorite}},
+      { new: true } 
+    );
+
+    return updateContact;
+  } catch(error) {
+    console.error(
+      "Error during favorite contact status update", error
+    );
+    throw error;
+  }
+};
 
 module.exports = {
   listContacts,
@@ -99,4 +92,5 @@ module.exports = {
   removeContact,
   addContact,
   updateContact,
-}
+  updateFavoriteStatus,
+};
