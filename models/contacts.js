@@ -1,4 +1,4 @@
-const Contact = require("../models/contactsModel.js");
+const Contact = require("../models/contacts.model.js");
 
 const listContacts = async () => {
   try {
@@ -27,12 +27,13 @@ const removeContact = async (contactId) => {
   return contact;
 };
 
-const addContact = async (name, email, phone) => {
+const addContact = async (name, email, phone, owner) => {
   try{
     const newContact = await Contact.create({
       name,
       email,
       phone,
+      owner,
       favorite: false,
     });
   return newContact;
@@ -42,20 +43,15 @@ const addContact = async (name, email, phone) => {
 }
 };
 
-const updateContact = async (contactId, body) => {
-  const {name, email, phone} = body;
-
+const update = async (userId, contactId, body) => {
   try{
     const contact = await Contact.findByIdAndUpdate(
-      contactId,
+      { owner: userId, _id: contactId },
+      body,
       {
-        $set: {
-          name,
-          email,
-          phone,
-        },
-      },
-      {new:true}
+        runValidators: true,
+        new: true,
+      }
     );
 
 if(!contact) {
@@ -79,9 +75,7 @@ const updateFavoriteStatus = async (contactId, favorite) => {
 
     return updateContact;
   } catch(error) {
-    console.error(
-      "Error during favorite contact status update", error
-    );
+    console.error("Error during favorite contact status update", error);
     throw error;
   }
 };
@@ -91,6 +85,6 @@ module.exports = {
   getContactById,
   removeContact,
   addContact,
-  updateContact,
+  update,
   updateFavoriteStatus,
 };
