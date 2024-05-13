@@ -3,9 +3,10 @@ const logger = require('morgan');
 const cors = require('cors');
 const mongoose = require('mongoose');
 const detenv = require('dotenv');
-
 detenv.config();
-const contactsRouter = require('./routes/api/contacts');
+require("./config/passport")
+const contactsRouter = require('./routes/contacts');
+const userRouter = require("./routes/userr")
 
 const app = express();
 
@@ -15,14 +16,21 @@ app.use(logger(formatsLogger));
 app.use(cors());
 app.use(express.json());
 
-mongoose
-.connect(process.env.MONGODB_URI, {
+mongoose.connect(process.env.MONGODB_URI, {
   useNewUrlParser: true,
   useUnifiedTopology: true,
 })
-.then(() => console.log("Database connection succesful"))
-.catch((error) => console.log("error"));
 
+mongoose.connection.on("error", (error) => {
+  console.error("Database connection error:", error);
+  process.exit(1);
+});
+
+mongoose.connection.once("open", () => {
+  console.log("Database connection successful");
+});
+
+app.use("/api/users", userRouter);
 app.use("/api/contacts", contactsRouter);
 
 app.use((req, res) => {
