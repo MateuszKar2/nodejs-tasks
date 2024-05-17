@@ -1,4 +1,3 @@
-const { required } = require('joi');
 const mongoose = require('mongoose');
 
 const contactSchema = new mongoose.Schema({
@@ -16,7 +15,13 @@ const contactSchema = new mongoose.Schema({
           type: Boolean,
           default: false,
         },
-      });
+        owner: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: "User",
+        },
+      },
+      { versionKey: false, timestamps: true }
+    );
 
 const Contact = new mongoose.model("Contact", contactSchema);
 
