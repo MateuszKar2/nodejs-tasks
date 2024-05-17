@@ -54,7 +54,7 @@ const signup = async (req, res, _) => {
             return res.status(400).json({ message: error.message });
         }
 
-        const toLowerCaseEmail = email.toLowerCase();
+        const LowerCaseEmail = email.toLowerCase();
         const user = await findUserByEmail(toLowerCaseEmail);
 
         if(user) {
@@ -72,16 +72,7 @@ const signup = async (req, res, _) => {
             email: toLowerCaseEmail,
             password: hashedPassword,
         }).save();
-        res.status(201).json({
-            status: "Created",
-            cpde: 201,
-            data: {
-                user: {
-                    email: toLowerCaseEmail,
-                    subscription: "starter",
-                },
-            },
-        });
+        res.status(201).json({ message: "Now please log in" });
     } catch (err) {
         console.error(err);
     }
@@ -170,8 +161,8 @@ const logout = async (req, res, _) => {
 
 
 const getCurrentUser = async (req, res, _) => {
-    try {
-        let token = req.user.token;
+    try{
+        req.user
 
         if(!token) {
             return res.status(401).json({
