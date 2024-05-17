@@ -17,7 +17,7 @@ const params = {
     new Strategy(params, function (payload, done) {
         User.find({ _id: payload.id })
         .then(([user]) => {
-            if (!user) {
+            if (!user || !user.token) {
                 return done(new Error("User not found"));               
             }
             return done(null, user);
