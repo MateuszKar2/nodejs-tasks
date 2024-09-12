@@ -1,5 +1,4 @@
-const express = require('express');
-
+const express = require("express");
 const {
   getContacts,
   getContact,
@@ -8,7 +7,6 @@ const {
   updateContact,
   updateFavorite,
 } = require("../controllers/contacts");
-
 const { auth } = require("../middleware/authenticateToken");
 const router = express.Router();
 
@@ -17,6 +15,6 @@ router.get("/:contactId", auth, getContact);
 router.post("/", auth, createContact);
 router.put("/:contactId", auth, updateContact);
 router.patch("/:contactId/favorite", auth, updateFavorite);
-router.get("/:contactId", auth, deleteContact);
-  
+router.delete("/:contactId", auth, deleteContact);
+
 module.exports = router;
